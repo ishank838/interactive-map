@@ -11,13 +11,22 @@ type WorldsProps = {
 }
 
 export function Worlds(props: WorldsProps) {
-  const { data, status, error, selectProfile, createProfile, deleteProfile } = props.user
+  const { data, status, error, storageMode, selectProfile, createProfile, deleteProfile } = props.user
 
   useEffect(() => {
     document.title = props.game.title
   }, [props.game.title])
 
-  const statusLabel = status === 'saving' ? 'Saving…' : status === 'saved' ? 'Saved' : status === 'loading' ? 'Loading profiles…' : ''
+  const statusLabel =
+    status === 'saving'
+      ? 'Saving…'
+      : status === 'saved'
+        ? storageMode === 'local'
+          ? 'Saved in this browser'
+          : 'Saved'
+        : status === 'loading'
+          ? 'Loading profiles…'
+          : ''
 
   return (
     <main className="home">

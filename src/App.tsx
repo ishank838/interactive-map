@@ -91,7 +91,8 @@ function GameMap(props: {
 }) {
   const game = props.game
   const mapCatalog = props.mapCatalog
-  const { data, status, error, onBase, sessionMaps, updateMap, selectProfile, createProfile, deleteProfile } = props.user
+  const { data, status, error, storageMode, onBase, sessionMaps, updateMap, selectProfile, createProfile, deleteProfile } =
+    props.user
   const activeProfile = data?.profiles.find((profile) => profile.id === data.activeProfileId)
   const mapUser = onBase
     ? coerceMapUser(sessionMaps[mapCatalog.mapId])
@@ -149,15 +150,18 @@ function GameMap(props: {
 
   const disabled = !data
   const editsLocked = disabled || onBase
+  const savedLabel = storageMode === 'local' ? 'Saved in this browser' : 'Saved'
   const statusLabel = onBase
     ? 'Base view — create a profile to save markers and details'
     : status === 'saving'
       ? 'Saving…'
       : status === 'saved'
-        ? 'Saved'
+        ? savedLabel
         : status === 'loading'
           ? 'Loading your notes…'
-          : ''
+          : storageMode === 'local'
+            ? 'Profiles save in this browser on Cloudflare'
+            : ''
   const focusKey =
     selection?.kind === 'location' ? `location:${selection.id}` : selection?.kind === 'marker' ? `marker:${selection.id}` : ''
 

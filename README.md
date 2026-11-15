@@ -34,12 +34,20 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173).
 
-Profiles save through a Vite middleware at `/api/user/:gameId`. Always use **`npm run dev`** (or `vite preview` after build). Opening a static `dist/` folder or a plain static host will not serve that API and the UI will fail to load notes.
+### Local (`npm run dev`)
+
+Profiles save through a Vite middleware at `/api/user/:gameId` into `data/user/<game>.json`.
+
+### Cloudflare Pages / static hosts
+
+There is no file API on Cloudflare Pages. The app **falls back to `localStorage`** in that browser — markers, found checks, ores, and comments still work. They stay on that device/browser (not synced across machines).
 
 ```bash
-npm run build          # typecheck + production build
-npx vite preview       # serve build with the same user-data API
+npm run build
+# deploy the `dist/` folder to Cloudflare Pages
 ```
+
+Build settings typically: framework Vite, build `npm run build`, output `dist`.
 
 ## Profiles and persistence
 

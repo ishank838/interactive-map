@@ -9,6 +9,7 @@ import {
   type Profile,
   type UserDataFile,
 } from '../types'
+import { flushUserFile, loadUserFile, saveUserFile, type StorageMode } from './storage'
 
 const MAX_PROFILES = 20
 const MAX_PROFILE_NAME = 40
@@ -69,21 +70,19 @@ export function useUserData(gameId: string) {
   const [sessionMaps, setSessionMaps] = useState<Record<string, MapUserState>>({})
   const [status, setStatus] = useState<SaveStatus>('loading')
   const [error, setError] = useState<string | null>(null)
+  const [storageMode, setStorageMode] = useState<StorageMode>('api')
   const dataRef = useRef<UserDataFile | null>(null)
   const sessionMapsRef = useRef<Record<string, MapUserState>>({})
+  const modeRef = useRef<StorageMode>('api')
   const timer = useRef<number | null>(null)
   const pending = useRef(false)
   const queue = useRef(Promise.resolve())
 
   const persist = useCallback(
     async (file: UserDataFile) => {
-      const response = await fetch(`/api/user/${gameId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(file),
-      })
-      if (response.status === 409) throw new Error('Another change was saved first. Reload the page.')
-      if (!response.ok) throw new Error((await response.text()) || 'Could not save')
+      const nextMode = await saveUserFile(gameId, file, modeRef.current)
+      modeRef.current = nextMode
+      setStorageMode(nextMode)
     },
     [gameId],
   )
@@ -129,20 +128,11 @@ export function useUserData(gameId: string) {
     setError(null)
     setSessionMaps({})
     sessionMapsRef.current = {}
-    void fetch(`/api/user/${gameId}`)
-      .then(async (response) => {
-        const raw = await response.text()
-        if (!response.ok) throw new Error(raw || 'Could not load your notes')
-        let file: UserDataFile
-        try {
-          file = JSON.parse(raw) as UserDataFile
-        } catch {
-          throw new Error('Profile API is not available. Run this app with `npm run dev` (not a static host).')
-        }
-        return file
-      })
-      .then((file) => {
+    void loadUserFile(gameId)
+      .then(({ file, mode }) => {
         if (cancelled) return
+        modeRef.current = mode
+        setStorageMode(mode)
         const { file: next, changed } = ensureBaseProfile(file)
         dataRef.current = next
         setData(next)
@@ -175,12 +165,7 @@ export function useUserData(gameId: string) {
       if (!latest || !pending.current) return
       if (timer.current) window.clearTimeout(timer.current)
       pending.current = false
-      void fetch(`/api/user/${gameId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(latest),
-        keepalive: true,
-      })
+      flushUserFile(gameId, latest, modeRef.current)
     }
     window.addEventListener('pagehide', flush)
     return () => window.removeEventListener('pagehide', flush)
@@ -267,6 +252,7 @@ export function useUserData(gameId: string) {
     data,
     status,
     error,
+    storageMode,
     onBase,
     sessionMaps,
     updateMap,
