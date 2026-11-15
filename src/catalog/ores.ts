@@ -5,6 +5,7 @@ export const DEEP_ORES = [
   { id: 'copper', title: 'Copper' },
   { id: 'gold', title: 'Gold' },
   { id: 'iron', title: 'Iron' },
+  { id: 'oxite', title: 'Oxite' },
   { id: 'platinum', title: 'Platinum' },
   { id: 'sulfur', title: 'Sulfur' },
   { id: 'titanium', title: 'Titanium' },
