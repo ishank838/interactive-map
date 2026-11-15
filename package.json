@@ -1,0 +1,26 @@
+{
+  "name": "icarus-interactive-map",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "normalize": "node scripts/normalize-mapgenie.mjs",
+    "import:icons": "node scripts/slice-icons.mjs",
+    "import:tiles": "node scripts/download-tiles.mjs"
+  },
+  "dependencies": {
+    "maplibre-gl": "^5.6.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "pngjs": "^7.0.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3"
+  }
+}

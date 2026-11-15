@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "revision": 12,
+  "activeProfileId": "a2540742-3228-4488-938c-6c63a905879e",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "Base",
+      "maps": {}
+    },
+    {
+      "id": "a2540742-3228-4488-938c-6c63a905879e",
+      "name": "LEGEND",
+      "maps": {
+        "olympus": {
+          "found": [
+            "515325"
+          ],
+          "hiddenCategoryIds": [
+            "4716",
+            "4717",
+            "4718",
+            "4729",
+            "4723",
+            "4721",
+            "4726",
+            "4724",
+            "4728",
+            "4727"
+          ],
+          "hideFound": false,
+          "ores": {
+            "515325": "coal"
+          },
+          "comments": {
+            "515325": "Base"
+          },
+          "markers": []
+        }
+      }
+    }
+  ]
+}
