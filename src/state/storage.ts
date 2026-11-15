@@ -25,22 +25,24 @@ function looksLikeJson(raw: string) {
   return trimmed.startsWith('{') || trimmed.startsWith('[')
 }
 
-/** Prefer the Vite file API when available; otherwise use this browser's localStorage (Cloudflare Pages, etc.). */
+/** Production / Cloudflare: localStorage only. Dev: prefer Vite file API when it returns JSON. */
 export async function loadUserFile(gameId: string): Promise<{ file: UserDataFile; mode: StorageMode }> {
-  try {
-    const response = await fetch(`/api/user/${gameId}`)
-    const raw = await response.text()
-    if (response.ok && looksLikeJson(raw)) {
-      return { file: JSON.parse(raw) as UserDataFile, mode: 'api' }
+  if (import.meta.env.DEV) {
+    try {
+      const response = await fetch(`/api/user/${gameId}`)
+      const raw = await response.text()
+      if (response.ok && looksLikeJson(raw)) {
+        return { file: JSON.parse(raw) as UserDataFile, mode: 'api' }
+      }
+    } catch {
+      // fall through — never surface HTML/doctype as a user-facing error
     }
-  } catch {
-    // fall through to local storage
   }
   return { file: readLocal(gameId) ?? emptyUserData(), mode: 'local' }
 }
 
 export async function saveUserFile(gameId: string, file: UserDataFile, mode: StorageMode): Promise<StorageMode> {
-  if (mode === 'api') {
+  if (mode === 'api' && import.meta.env.DEV) {
     try {
       const response = await fetch(`/api/user/${gameId}`, {
         method: 'PUT',
@@ -49,8 +51,11 @@ export async function saveUserFile(gameId: string, file: UserDataFile, mode: Sto
       })
       if (response.status === 409) throw new Error('Another change was saved first. Reload the page.')
       const raw = await response.text()
-      if (response.ok && (!raw || looksLikeJson(raw))) return 'api'
-      // API disappeared (e.g. static deploy) — keep working via localStorage.
+      if (response.ok && (!raw || looksLikeJson(raw))) {
+        // Mirror to localStorage so a later static deploy still has a copy.
+        writeLocal(gameId, file)
+        return 'api'
+      }
     } catch (error) {
       if (error instanceof Error && error.message.includes('Another change')) throw error
     }
@@ -60,7 +65,7 @@ export async function saveUserFile(gameId: string, file: UserDataFile, mode: Sto
 }
 
 export function flushUserFile(gameId: string, file: UserDataFile, mode: StorageMode) {
-  if (mode === 'local') {
+  if (mode === 'local' || !import.meta.env.DEV) {
     writeLocal(gameId, file)
     return
   }
