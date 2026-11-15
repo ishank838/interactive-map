@@ -278,79 +278,86 @@ function send(res: ServerResponse, status: number, body: string, json = false) {
   res.end(body)
 }
 
-function userDataPlugin(): Plugin {
+function mountUserDataApi(middlewares: { use: (fn: (req: IncomingMessage, res: ServerResponse, next: () => void) => void) => void }) {
   const dir = path.resolve('data/user')
+  middlewares.use((req, res, next) => {
+    const pathname = (req.url ?? '').split('?')[0] ?? ''
+    const match = pathname.match(/^\/api\/user\/([a-z0-9-]+)$/)
+    if (!match) {
+      next()
+      return
+    }
+    const gameId = match[1]
+    if (!gameId || !GAME_ID.test(gameId)) {
+      send(res, 400, 'Invalid game id')
+      return
+    }
+    const file = path.resolve(dir, `${gameId}.json`)
+    if (!file.startsWith(`${dir}${path.sep}`)) {
+      send(res, 400, 'Invalid game id')
+      return
+    }
+
+    if (req.method === 'GET') {
+      if (!fs.existsSync(file)) {
+        send(res, 200, JSON.stringify(emptyUserData()), true)
+        return
+      }
+      try {
+        const parsed: unknown = JSON.parse(fs.readFileSync(file, 'utf8'))
+        const migrated = migrateUserData(parsed)
+        if (!migrated) {
+          send(res, 500, 'Saved user data is invalid')
+          return
+        }
+        if (!isUserData(parsed)) writeUserFile(file, migrated)
+        send(res, 200, JSON.stringify(migrated), true)
+      } catch {
+        send(res, 500, 'Saved user data is not valid JSON')
+      }
+      return
+    }
+
+    if (req.method === 'PUT') {
+      void readBody(req)
+        .then((raw) => {
+          let parsed: unknown
+          try {
+            parsed = JSON.parse(raw)
+          } catch {
+            send(res, 400, 'Invalid JSON')
+            return
+          }
+          if (!isUserData(parsed)) {
+            send(res, 400, 'Invalid user data')
+            return
+          }
+          if (parsed.revision <= storedRevision(file)) {
+            send(res, 409, 'Stale profile data')
+            return
+          }
+          writeUserFile(file, normalizeUserData(parsed))
+          send(res, 200, JSON.stringify({ ok: true }), true)
+        })
+        .catch((error: unknown) => {
+          const status = error && typeof error === 'object' && 'status' in error ? Number(error.status) : 400
+          send(res, Number.isFinite(status) ? status : 400, error instanceof Error ? error.message : 'Could not save')
+        })
+      return
+    }
+
+    send(res, 405, 'Method not allowed')
+  })
+}
+
+function userDataPlugin(): Plugin {
   return {
     name: 'user-data',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const pathname = req.url?.split('?')[0] ?? ''
-        const match = pathname.match(/^\/api\/user\/([a-z0-9-]+)$/)
-        if (!match) {
-          next()
-          return
-        }
-        const gameId = match[1]
-        if (!gameId || !GAME_ID.test(gameId)) {
-          send(res, 400, 'Invalid game id')
-          return
-        }
-        const file = path.resolve(dir, `${gameId}.json`)
-        if (!file.startsWith(`${dir}${path.sep}`)) {
-          send(res, 400, 'Invalid game id')
-          return
-        }
-
-        if (req.method === 'GET') {
-          if (!fs.existsSync(file)) {
-            send(res, 200, JSON.stringify(emptyUserData()), true)
-            return
-          }
-          try {
-            const parsed: unknown = JSON.parse(fs.readFileSync(file, 'utf8'))
-            const migrated = migrateUserData(parsed)
-            if (!migrated) {
-              send(res, 500, 'Saved user data is invalid')
-              return
-            }
-            if (!isUserData(parsed)) writeUserFile(file, migrated)
-            send(res, 200, JSON.stringify(migrated), true)
-          } catch {
-            send(res, 500, 'Saved user data is not valid JSON')
-          }
-          return
-        }
-
-        if (req.method === 'PUT') {
-          void readBody(req)
-            .then((raw) => {
-              let parsed: unknown
-              try {
-                parsed = JSON.parse(raw)
-              } catch {
-                send(res, 400, 'Invalid JSON')
-                return
-              }
-              if (!isUserData(parsed)) {
-                send(res, 400, 'Invalid user data')
-                return
-              }
-              if (parsed.revision <= storedRevision(file)) {
-                send(res, 409, 'Stale profile data')
-                return
-              }
-              writeUserFile(file, normalizeUserData(parsed))
-              send(res, 200, JSON.stringify({ ok: true }), true)
-            })
-            .catch((error: unknown) => {
-              const status = error && typeof error === 'object' && 'status' in error ? Number(error.status) : 400
-              send(res, Number.isFinite(status) ? status : 400, error instanceof Error ? error.message : 'Could not save')
-            })
-          return
-        }
-
-        send(res, 405, 'Method not allowed')
-      })
+      mountUserDataApi(server.middlewares)
+    },
+    configurePreviewServer(server) {
+      mountUserDataApi(server.middlewares)
     },
   }
 }

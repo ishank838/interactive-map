@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 12,
+  "revision": 17,
   "activeProfileId": "a2540742-3228-4488-938c-6c63a905879e",
   "profiles": [
     {
@@ -14,26 +14,18 @@
       "maps": {
         "olympus": {
           "found": [
-            "515325"
+            "515325",
+            "515327"
           ],
-          "hiddenCategoryIds": [
-            "4716",
-            "4717",
-            "4718",
-            "4729",
-            "4723",
-            "4721",
-            "4726",
-            "4724",
-            "4728",
-            "4727"
-          ],
+          "hiddenCategoryIds": [],
           "hideFound": false,
           "ores": {
-            "515325": "coal"
+            "515325": "coal",
+            "515327": "copper"
           },
           "comments": {
-            "515325": "Base"
+            "515325": "Base",
+            "515327": "connected with electricity"
           },
           "markers": []
         }

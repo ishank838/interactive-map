@@ -131,8 +131,15 @@ export function useUserData(gameId: string) {
     sessionMapsRef.current = {}
     void fetch(`/api/user/${gameId}`)
       .then(async (response) => {
-        if (!response.ok) throw new Error((await response.text()) || 'Could not load your notes')
-        return (await response.json()) as UserDataFile
+        const raw = await response.text()
+        if (!response.ok) throw new Error(raw || 'Could not load your notes')
+        let file: UserDataFile
+        try {
+          file = JSON.parse(raw) as UserDataFile
+        } catch {
+          throw new Error('Profile API is not available. Run this app with `npm run dev` (not a static host).')
+        }
+        return file
       })
       .then((file) => {
         if (cancelled) return
