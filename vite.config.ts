@@ -40,6 +40,7 @@ type MapUserState = {
   found: string[]
   hiddenCategoryIds: string[]
   hideFound: boolean
+  showFoundOnly?: boolean
   ores: Record<string, string>
   comments?: Record<string, string>
   markers: UserMarker[]
@@ -130,6 +131,7 @@ function isMapState(value: unknown): value is MapUserState {
     isStringList(map.found) &&
     isStringList(map.hiddenCategoryIds) &&
     typeof map.hideFound === 'boolean' &&
+    (map.showFoundOnly === undefined || typeof map.showFoundOnly === 'boolean') &&
     isOreMap(map.ores ?? {}) &&
     isCommentMap(map.comments ?? {}) &&
     Array.isArray(map.markers) &&
@@ -141,6 +143,7 @@ function isMapState(value: unknown): value is MapUserState {
 function normalizeMapState(value: MapUserState): MapUserState {
   return {
     ...value,
+    showFoundOnly: value.showFoundOnly ?? false,
     ores: value.ores ?? {},
     comments: value.comments ?? {},
     markers: value.markers.map((marker) => ({

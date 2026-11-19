@@ -212,12 +212,17 @@ button, select { cursor: pointer; }
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.toolbar .found-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-left: auto;
 }
 
 .pin-found {
   margin: 0 0 8px;
-  margin-left: 0;
 }
 
 .categories {
@@ -445,6 +450,12 @@ button, select { cursor: pointer; }
   z-index: 2;
 }
 .place-button.active { background: #31567a; }
+
+.map-reset-view {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath stroke='%23333' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M3.5 9.5 10 3.5l6.5 6M5.5 8.5V16h9V8.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
 
 .place-hint {
   position: absolute;

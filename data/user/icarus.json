@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 17,
+  "revision": 19,
   "activeProfileId": "a2540742-3228-4488-938c-6c63a905879e",
   "profiles": [
     {
@@ -19,6 +19,7 @@
           ],
           "hiddenCategoryIds": [],
           "hideFound": false,
+          "showFoundOnly": false,
           "ores": {
             "515325": "coal",
             "515327": "copper"

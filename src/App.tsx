@@ -124,6 +124,7 @@ function GameMap(props: {
     const oreSet = new Set(oreFilter)
     return mapCatalog.locations.filter((location) => {
       if (hiddenIds.has(location.categoryId)) return false
+      if (mapUser.showFoundOnly && !foundIds.has(location.id)) return false
       if (mapUser.hideFound && foundIds.has(location.id)) return false
       if (oreSet.size > 0) {
         const ore = mapUser.ores[location.id]
@@ -135,7 +136,18 @@ function GameMap(props: {
       const comment = mapUser.comments[location.id] ?? ''
       return `${location.title} ${categoryTitle} ${oreTitle} ${comment}`.toLowerCase().includes(query)
     })
-  }, [mapCatalog.locations, hiddenIds, mapUser.hideFound, mapUser.ores, mapUser.comments, foundIds, search, oreFilter, categoryById])
+  }, [
+    mapCatalog.locations,
+    hiddenIds,
+    mapUser.hideFound,
+    mapUser.showFoundOnly,
+    mapUser.ores,
+    mapUser.comments,
+    foundIds,
+    search,
+    oreFilter,
+    categoryById,
+  ])
 
   useEffect(() => {
     document.title = `${mapCatalog.title} · ${game.title}`
@@ -291,7 +303,26 @@ function GameMap(props: {
           )
         }
         onToggleHideFound={() =>
-          updateMap(mapCatalog.mapId, (current) => ({ ...current, hideFound: !current.hideFound }), 'filter')
+          updateMap(
+            mapCatalog.mapId,
+            (current) => ({
+              ...current,
+              hideFound: !current.hideFound,
+              showFoundOnly: current.hideFound ? current.showFoundOnly : false,
+            }),
+            'filter',
+          )
+        }
+        onToggleShowFoundOnly={() =>
+          updateMap(
+            mapCatalog.mapId,
+            (current) => ({
+              ...current,
+              showFoundOnly: !current.showFoundOnly,
+              hideFound: current.showFoundOnly ? current.hideFound : false,
+            }),
+            'filter',
+          )
         }
         onToggleCategory={(categoryId) =>
           updateMap(

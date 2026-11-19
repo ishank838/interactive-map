@@ -29,6 +29,45 @@ type MapCanvasProps = {
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
 
+class ResetViewControl implements maplibregl.IControl {
+  private container: HTMLDivElement | undefined
+  private readonly center: [number, number]
+  private readonly zoom: number
+
+  constructor(center: [number, number], zoom: number) {
+    this.center = center
+    this.zoom = zoom
+  }
+
+  onAdd(map: MapLibreMap): HTMLElement {
+    const container = document.createElement('div')
+    container.className = 'maplibregl-ctrl maplibregl-ctrl-group'
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'maplibregl-ctrl-icon map-reset-view'
+    button.title = 'Reset view'
+    button.setAttribute('aria-label', 'Reset view')
+    button.addEventListener('click', (event) => {
+      event.preventDefault()
+      map.easeTo({
+        center: this.center,
+        zoom: this.zoom,
+        bearing: 0,
+        pitch: 0,
+        duration: 450,
+      })
+    })
+    container.appendChild(button)
+    this.container = container
+    return container
+  }
+
+  onRemove(): void {
+    this.container?.remove()
+    this.container = undefined
+  }
+}
+
 function checkImage(): ImageData {
   const canvas = document.createElement('canvas')
   canvas.width = 32
@@ -183,16 +222,24 @@ export function MapCanvas({
       },
       center: mapCatalog.tiles.center,
       zoom: mapCatalog.tiles.initialZoom,
+      bearing: 0,
+      pitch: 0,
+      maxPitch: 0,
       minZoom: mapCatalog.tiles.minZoom,
       maxZoom: mapCatalog.tiles.maxZoom,
       maxBounds: [
         [west, south],
         [east, north],
       ],
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
       renderWorldCopies: false,
       attributionControl: false,
     })
+    map.touchZoomRotate.disableRotation()
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+    map.addControl(new ResetViewControl(mapCatalog.tiles.center, mapCatalog.tiles.initialZoom), 'bottom-right')
     mapRef.current = map
     readyRef.current = false
 

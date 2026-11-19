@@ -80,6 +80,8 @@ export type MapUserState = {
   found: string[]
   hiddenCategoryIds: string[]
   hideFound: boolean
+  /** When true, only locations marked found are shown (category filters still apply). */
+  showFoundOnly: boolean
   /** Deep mining deposit location id → ore id the player rolled. */
   ores: Record<string, string>
   /** Catalog location id → player comment. */
@@ -151,6 +153,7 @@ export function emptyMapUser(): MapUserState {
     found: [],
     hiddenCategoryIds: [],
     hideFound: false,
+    showFoundOnly: false,
     ores: {},
     comments: {},
     markers: [],
@@ -164,6 +167,7 @@ export function coerceMapUser(value: Partial<MapUserState> | undefined): MapUser
     found: value.found ?? base.found,
     hiddenCategoryIds: value.hiddenCategoryIds ?? base.hiddenCategoryIds,
     hideFound: value.hideFound ?? base.hideFound,
+    showFoundOnly: value.showFoundOnly ?? base.showFoundOnly,
     ores: value.ores ?? base.ores,
     comments: value.comments ?? base.comments,
     markers: (value.markers ?? base.markers).map((marker) => coerceUserMarker(marker)),

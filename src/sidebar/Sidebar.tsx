@@ -33,6 +33,7 @@ type SidebarProps = {
   onShowAll: () => void
   onHideAll: () => void
   onToggleHideFound: () => void
+  onToggleShowFoundOnly: () => void
   onToggleCategory: (categoryId: string) => void
   onToggleFound: (locationId: string) => void
   onSelectLocation: (locationId: string) => void
@@ -144,10 +145,21 @@ export function Sidebar(props: SidebarProps) {
         <button type="button" onClick={props.onHideAll} disabled={props.disabled}>
           Hide all
         </button>
-        <label className="check-row">
-          <input type="checkbox" checked={props.user.hideFound} onChange={props.onToggleHideFound} disabled={props.disabled} />
-          Hide found
-        </label>
+        <div className="found-filters">
+          <label className="check-row">
+            <input type="checkbox" checked={props.user.hideFound} onChange={props.onToggleHideFound} disabled={props.disabled} />
+            Hide found
+          </label>
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={props.user.showFoundOnly}
+              onChange={props.onToggleShowFoundOnly}
+              disabled={props.disabled}
+            />
+            Only found
+          </label>
+        </div>
       </div>
 
       <section className="fold advanced-search">
